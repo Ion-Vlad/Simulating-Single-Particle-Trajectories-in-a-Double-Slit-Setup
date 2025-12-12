@@ -1,0 +1,13 @@
+
+                        Copyright © 2025 Ion Vlad
+ 
+   This program is released under the Creative Commons Attribution 4.0 International License (CC BY 4.0).
+ 
+   When you modify or redistribute the code you must:
+	• Keep this copyright notice intact.
+	• Add a line “tweaked by <your name>” (or similar) after the notice.
+	• If you rewrite the program in another language, keep the above notice visible in the UI/screenshots and include a link to the original repository: https://github.com/ionvlad/your‑original‑repo
+	or/and: https://drive.proton.me/urls/XG5ZKT94A8#ijnqZsisCgjv
+      
+   Full license text: https://creativecommons.org/licenses/by/4.0/
+ 
