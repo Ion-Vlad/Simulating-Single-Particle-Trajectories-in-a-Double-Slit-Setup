@@ -1,0 +1,714 @@
+<!--------------------------------------- LICENSE -------------------------------------------->
+<!                               Copyright © 2025 Ion Vlad                                    >
+<! This program is released under the Creative Commons Attribution 4.0 International License  >
+<!                                       (CC BY 4.0).                                         >
+<! When you modify or redistribute the code you must:                                         >
+<!    • Keep this copyright notice intact.                                                    >
+<!    • Add a line “tweaked by 'your name' ” (or similar) after the notice.                   >
+<!    • If you rewrite the program in another language, keep the above notice visible in the  >
+<!      UI/screenshots and include a link to the original repository:                         >      
+<! https://github.com/Ion-Vlad/Simulating-Single-Particle-Trajectories-in-a-Double-Slit-Setup >
+<!                                          or/and:                                           >      
+<!                      https://drive.proton.me/urls/XG5ZKT94A8#ijnqZsisCgjv                  >
+<!                                                                                            >
+<!                 Full license text: https://creativecommons.org/licenses/by/4.0/            >
+<!                                                                                            >
+<!                                  Thank you for understanding!                              >
+<!-------------------------------------------------------------------------------------------->
+
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+   <meta charset='UTF-8'>
+   <title>Double‑Slit Demo</title>
+   <style>
+		body {
+			font-family:sans-serif;
+			margin:20px;
+			background:#E0E0E0;
+			align-items:center;
+			height:100vh;  
+		}
+		.scene {
+		   perspective: 8000px;               /* camera distance */
+		   perspective-origin: left center;
+		   position: relative;
+		   width: 3050px;
+		   height: 1020px;
+		   transform-style: preserve-3d;
+	   /*   border: 1px solid #aaa;  */  
+		  }
+      #controls {margin-bottom:12px;}
+      canvas {position:absolute;top:0;left:0;display:block;}
+      #bgCanvas {z-index:1;}
+      #wmCanvas {z-index:2;}
+      /* Main canvas – the thing you normally draw on */
+      #fgCanvas {
+         z-index:10;
+         border: 1px solid #aaa;
+         cursor: crosshair;
+      }
+	   /* The Classic style canvas */
+	   #csCanvas {
+		  z-index:3;
+	     width: 600px;
+	     height: 880px;
+	     background: transparent;    /* explicit – default is already transparent */
+	     border:2px solid #888;
+	     position:absolute;
+		  pointer-events: none;       /* let mouse events fall through the canvas */
+	     top:0;                     /* align top edges */
+	     left:400px;               /* start at the right edge of the big canvas */
+	     transform-origin: left center;   /* pivot around its left edge */
+	     transform: rotateY(-80deg);      /* tilt it toward the viewer */
+	     box-shadow: inset 0 0 30px rgba(0,0,0,.6);
+		  -webkit-print-color-adjust: exact;
+		  print-color-adjust: exact;
+		  color-adjust: exact;   /* older spec, some browsers still recognise it */
+		  display:none;
+	   }
+
+      /* The magnifier “lens” – positioned absolutely over the page */
+      #lensCanvas {
+         z-index:999;
+         position:absolute;
+         pointer-events:none;               /* let mouse events fall through main canvas */
+         border:2px solid #333;
+			border-radius: 50%;  
+         box-shadow:0 0 6px rgba(0,0,0,.4);
+         background:#fff;
+         display:none;                      /* hidden until we actually hover */
+      }
+      label {margin-right:10px;}
+      /* Adds 20 px space to the right of the button */
+      .button {margin-right:20px;}
+      /* Only a tiny bit of style for readme so the box is readable */
+      #readme{
+         display:block;      
+         margin-top:0.5rem;
+         padding:0.5rem;
+         border:1px solid #999;
+         background:#fefefe;
+      }
+      button:disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+      }
+      .spacer {
+         display: inline-block;
+         width: 2rem;   /* control the amount of space between Hide Readme button and checkbox */
+      }
+   </style>
+</head>
+<body>
+   <h3>Double‑Slit Demo v1.1 – copyright © 2025 Ion Vlad</h3>
+   <div id='readme' style='display:block'>
+      <strong>Disclaimer:</strong><br>
+	The program is built with HTML + JavaScript, allowing anyone to read the code and run it on most desktop browsers or Android devices without needing additional libraries or environments. For obvious reasons it works in Safari on desktop, but not on iPhone or iPad — I haven’t tested it on an Android tablet.
+	Because this isn’t a programming‑project assignment, I wanted to keep the code as short and simple as possible, avoiding unnecessary graphics or functions that would be required to make it run on iPhone or iPad. I have tested it on an Android phone with Chrome, on Microsoft Edge and Opera on a PC, on Safari, Firefox and Opera on a MacBook Pro, and on Linux.
+	Since this program is meant solely for demonstration purposes and isn’t intended for in‑depth research, avoid running the simulation for long periods on low‑memory or slow computers.
+	I’m not a professional software engineer, so please refrain from critiquing my programming skills—the simulation’s concept is what matters most. However, I’m open to any constructive suggestions.
+      <p></p>
+	All files and documents related to this work (including additional screenshots) can be found here:
+      <p></p>
+	https://github.com/Ion-Vlad/Simulating-Single-Particle-Trajectories-in-a-Double-Slit-Setup
+	   <p></p>
+	https://drive.proton.me/urls/XG5ZKT94A8#ijnqZsisCgjv
+	   <p></p>
+		Vlad, I. (2025). *Simulation of single‑particle trajectories in a double‑slit geometry* (Version 1.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.17922056
+      <p></p>
+	1. This program does <strong>not</strong> simulate how photons or waves behave; it merely demonstrates that particles can leave a “wave‑like” imprint on the screen even though they <strong>do not</strong> behave like waves. <strong><u>Reproducing the pattern does not falsify quantum mechanics, but highlights the importance of boundary interactions.</u></strong>
+      <p></p>
+	2. Because the particles are emitted randomly, two simulations with identical parameters may produce slightly different imprints.
+      <p></p>
+	3. Collisions between particles are not shown, as particles can be fired one at a time.
+      <p></p>
+	4. At high speeds (> 4), a small particle can pass through a thin wall. This is normal single‑particle behaviour and should not be interpreted as a programming bug.
+      <p></p>
+	5. The interface is self‑explanatory: adjust the settings and press <strong>Start</strong>. Some particles will pass through the slit and leave a red imprint on the screen. The particles that pass through the upper slit remain blue, whereas those that pass through the lower slit turn red. This method records which slit each particle passes through without any physical interaction with the particles (or detectors).
+      <p></p>
+	6. When enough particles have struck the screen, press <strong>Stop</strong> and analyse the imprint. You can press <strong>Start</strong> again if you want the imprint to “build up” further. 
+      <p></p>
+	7. The <strong>Clear Screen</strong> button removes all red imprints and prepares the program for a new simulation, but it does not alter the current settings.
+      <p></p>
+	8.	During the simulation the sliders (controls) are disabled, and they become re‑enabled when the Clear Screen button is clicked.
+	   <p></p>
+	9. If the <strong>Screen Position</strong> setting is too high and the screen moves out of view, while the simulation is running (emitting), adjust the browser’s zoom level (or change the screen resolution) until the entire canvas fits within the viewport. Saving screenshots works best in Firefox by selecting Print → Save as PDF.
+      <p></p>
+	10. Hover the mouse over the screen line to display a magnifier. This lets you inspect the imprint at the pixel level.
+      <p></p>
+	11. The sliders can be adjusted incrementally with the arrow keys on the keyboard.
+      <p></p>
+	12. In the 3‑D view, the number of visible dots can be fewer than the total number of particles that hit the screen. This occurs when multiple particles land at exactly the same coordinates; they overlap and appear as a single dot. In contrast, the 2‑D view records every impact individually, so <strong>the accumulation of dots is more reliable for detailed analysis.</strong> In 3‑D view mode the simulation runs considerably slower, so we cap it at 10 000 particles.
+	   <p></p>
+	13. <strong>Browser‑specific issues:</strong>
+      a. Safari – Captures the 3‑D view correctly, but saves it as a flat rectangle, which can lead to misalignment in the imprint.
+      b. Opera, Edge and Chrome – The 3‑D view is captured accurately, yet the resulting image appears darker than the actual screen. Also Chrome is running slow.
+      c. Firefox – Saves the screenshot properly, but refreshing the page causes a strange misalignment and the sliders fail to update; a full page reload resolves the problem.
+ Note: The behaviour may vary depending on the computer hardware and browser version. It’s advisable to reload the page after each simulation.
+	<p></p>
+	14. Do not run multiple simulations simultaneously in the same browser. Launch the program in full‑screen mode and prevent the computer from going to sleep.
+   </div>
+   <p></p>
+   <button id='readmeBtn'>Hide Readme</button>
+	  <span class='spacer'></span>
+	<input type='checkbox' id='iClassic' checked>
+      Show imprint in Double-Slit experiment classic style (3-D screen - for illustration only)
+	<p></p>
+   <div id='controls'>
+      <!-- sliders -->
+      <label>Wall position:
+         <input type='range' id='wallPosSlider' min='10' max='575' value='300'>
+         <span id='wallPosVal'>300</span>
+      </label>
+      <label>Wall thickness:
+         <input type='range' id='thickSlider' min='1' max='400' value='30'>
+         <span id='thickVal'>30</span>
+      </label>
+      <label>Slit width:
+         <input type='range' id='slitSizeSlider' min='3' max='420' value='100'>
+         <span id='slitSizeVal'>100</span>
+      </label>
+      <label>Gap between slits:
+         <input type="range" id="slitGapSlider" min="1" max="200" value="40">
+         <span id="slitGapVal">40</span>
+      </label>
+		   <p></p>
+      <label>Particle speed:
+         <input type='range' id='particleSpeedSlider' min='2' max='6' value='6'>
+         <span id='particleSpeedVal'>6</span>
+      </label>
+      <label>Particle size:
+         <input type='range' id='particleSlider' min='1' max='3' value='1'>
+         <span id='particleVal'>1</span>
+      </label>
+      <label>Screen position:
+         <input type='range' id='screenPosSlider' min='200' max='1700' value='600'>
+         <span id='screenPosVal'>600</span>
+      </label>
+      <label>Spread angle:
+         <input type='range' id='angleSlider' min='1' max='45' value='45'>
+         <span id='angleVal'>45</span> °
+      </label>
+      <p></p>
+      <button id='resetBtn'>Clear screen</button>
+      <button class='button' id='toggleBtn'>Start</button>
+      <span id='date'></span>
+      <span id='info'></span>
+   </div>
+   <div class='scene'style="overflow:hidden;">
+		<canvas id='csCanvas' width='600' height='880'></canvas>
+      <canvas id='bgCanvas' width='3000' height='900'></canvas>
+      <canvas id='fgCanvas' width='3000' height='900'></canvas>
+      <canvas id='wmCanvas' width='1200' height='900'></canvas>
+      <canvas id='lensCanvas' width='150' height='150'></canvas>
+   </div>
+   <script>
+      // Get current date
+      let now = new Date();
+      let date = now.toLocaleDateString();
+      // Insert date and time into HTML
+      document.getElementById('date').innerHTML = date + ' - ';
+      // ---------- GLOBAL STATE ----------
+      let emitting = false;               // true while particles should be generated
+      let hitLimitReached = false;        // true once we have hit the limit for 3D mode
+      // ------- Global canvas references --------
+      const bgCanvas = document.getElementById('bgCanvas');
+      const fgCanvas = document.getElementById('fgCanvas');
+      const wmCanvas = document.getElementById('wmCanvas');
+		const csCanvas = document.getElementById('csCanvas');
+      const bg = bgCanvas.getContext('2d');
+      const fg = fgCanvas.getContext('2d');
+      const wm = wmCanvas.getContext('2d');
+		const cs = csCanvas.getContext('2d');
+      const W = bgCanvas.width;
+      const H = bgCanvas.height;
+		const canvasTop = 50;
+      const screenTop    = 10;     // make the screen a bit smaller than the canvas
+      const screenBottom = H - 10;
+      const gunX = 50;             // fixed gun x‑position
+      const gunY = H / 2;          // gun y‑position (centre)
+      // ------- Watermark style and settings ---------
+      wm.globalAlpha = 0.12;       // transparency
+      wm.font = '24px Arial';      // size & font
+      wm.textAlign = 'center';
+      wm.textBaseline = 'middle';
+      const lineSpacing = 260;      // vertical distance between rows
+      const colSpacing  = 400;      // horizontal distance between columns
+      const rows = Math.ceil(300 / lineSpacing) + 1;
+      const cols = Math.ceil(300 / colSpacing)  + 1;
+      const angleWm = -Math.PI / 4;   // ≈‑45° rotation
+	   // ----- Set up the lens canvas (the magnifier) -------- 
+	   const lens       = document.getElementById('lensCanvas');
+	   const ctxLens    = lens.getContext('2d');
+		const lensSize   = lens.width;
+	   const zoomFactor = 5;          // how much bigger the view appears
+	   // radius of the source area we’ll copy from the main canvas
+	   const srcRadius  = lensSize / (2 * zoomFactor);
+      // ----- Simulation state (will be updated by UI) -----
+      let slitHeight    = 25;   // slit height in Classic style
+		let wallX         = 300;   // left side of the wall (slider)
+      let wallThickness = 30;    // wall thickness (slider)
+      let slitWidth     = 100;   // width of each slit (slider) 
+      let slitGap       = 40;    // vertical distance between the two slits (slider)
+      let screenPos     = 600;   // distance from wall to screen (slider)
+      let spreadAngle   = 45;    // spread angle at the gun muzzle (slider)
+      let particleSize  = 1;     // particle size (slider)
+      let particleSpeed = 6;     // particle speed (slider)
+      let screenX       = wallX + wallThickness + screenPos; // absolute screen x‑coord
+      // ----- Hit counters --------
+      const hitCount = new Uint32Array(H);  // how many particles landed at each y‑row
+      let totalHits = 0;                   // total hits for info
+		const hitOffsets = [];  // Parallel to hitCount – each row holds an array
+      // -------- UI elements ----------------
+		const chkClassic          = document.getElementById('iClassic');
+      const wallPosSlider       = document.getElementById('wallPosSlider');
+      const wallPosVal          = document.getElementById('wallPosVal');
+      const thickSlider         = document.getElementById('thickSlider');
+      const thickVal            = document.getElementById('thickVal');
+      const screenPosSlider     = document.getElementById('screenPosSlider');
+      const screenPosVal        = document.getElementById('screenPosVal');
+      const angleSlider         = document.getElementById('angleSlider');
+      const angleVal            = document.getElementById('angleVal');
+      const slitSizeSlider      = document.getElementById('slitSizeSlider');
+      const slitSizeVal         = document.getElementById('slitSizeVal');
+      const particleSpeedSlider = document.getElementById('particleSpeedSlider');
+      const particleSpeedVal    = document.getElementById('particleSpeedVal');
+      const particleSlider      = document.getElementById('particleSlider');
+      const particleVal         = document.getElementById('particleVal');
+      const toggleBtn           = document.getElementById('toggleBtn');
+      const resetBtn            = document.getElementById('resetBtn');
+      const readmeBtn           = document.getElementById('readmeBtn');
+      const info                = document.getElementById('info');     
+		// Move the canvases down inside the scene
+		fgCanvas.style.top = canvasTop + 'px';
+		bgCanvas.style.top = canvasTop + 'px';
+		wmCanvas.style.top = canvasTop * 2 + 'px';
+      csCanvas.style.display = 'block';
+	   // ---- Helper to keep screenX in sync whenever wallX, wallThickness or screenPos change
+      function updateScreenX() {
+         screenX = wallX + wallThickness + screenPos;
+      }
+       // ----- Slider callbacks ----------
+ 	   chkClassic.addEventListener('change', () => {
+ 	      const disabled = chkClassic.checked;   // true → disabled
+ 		   csCanvas.style.display = chkClassic.checked ? 'block' : 'none'; //show the Classic style screen
+ 		   drawBackground();
+    	});
+		function isSafari() {               // check if the browser is Safari
+		  const ua = navigator.userAgent;
+		  // Safari’s UA contains "Safari" but NOT "Chrome"/"Chromium"/"CriOS"
+		  return /^((?!chrome|android).)*safari/i.test(ua);
+		}
+		if (isSafari) {   // Safari doesn't focus on sliders, so they can't be ajusted with keyboard... we fix it now...
+	      wallPosSlider.addEventListener('click', () => {
+	         wallPosSlider.focus();
+	      });
+	      thickSlider.addEventListener('click',  () => {
+	         thickSlider.focus();
+	      });
+	      screenPosSlider.addEventListener('click', () => {
+	         screenPosSlider.focus();
+	      });
+	      angleSlider.addEventListener('click', () => {
+	         angleSlider.focus();
+	      });
+	      slitSizeSlider.addEventListener('click', () => {
+	         slitSizeSlider.focus();
+	      });
+	      slitGapSlider.addEventListener('click', () => {
+	         slitGapSlider.focus();
+	      });
+	      particleSpeedSlider.addEventListener('click', () => {
+	         particleSpeedSlider.focus();
+	      });
+	      particleSlider.addEventListener('click', () => {
+	         particleSlider.focus();
+	      });
+		}
+      wallPosSlider.addEventListener('input', () => {
+         wallX = Number(wallPosSlider.value);
+         wallPosVal.textContent = wallX;
+         updateScreenX();
+         drawBackground();
+      });
+      thickSlider.addEventListener('input', () => {
+         wallThickness = Number(thickSlider.value);
+         thickVal.textContent = wallThickness;
+         updateScreenX();
+         drawBackground();
+      });
+      screenPosSlider.addEventListener('input', () => {
+         screenPos = Number(screenPosSlider.value);
+         screenPosVal.textContent = screenPos;
+         updateScreenX();
+         drawBackground();
+      });
+      angleSlider.addEventListener('input', () => {
+         spreadAngle = Number(angleSlider.value);
+         angleVal.textContent = spreadAngle;
+         drawBackground();
+      });
+      slitSizeSlider.addEventListener('input', () => {
+         slitWidth = Number(slitSizeSlider.value);
+         slitSizeVal.textContent = slitWidth;
+         drawBackground();
+      });
+      slitGapSlider.addEventListener('input', () => {
+         slitGap = Number(slitGapSlider.value);
+         slitGapVal.textContent = slitGap;
+         drawBackground();
+      });
+      particleSpeedSlider.addEventListener('input', () => {
+         particleSpeed = Number(particleSpeedSlider.value);
+         particleSpeedVal.textContent = particleSpeed;
+         drawBackground();
+      });
+      particleSlider.addEventListener('input', () => {
+         particleSize = Number(particleSlider.value);
+         particleVal.textContent = particleSize;
+         drawBackground();
+      });
+      // -------- Toggle the visibility of the #readme div --------
+      document.getElementById('readmeBtn').addEventListener('click', function () {
+         var box = document.getElementById('readme');
+         if (box.style.display === 'none' || box.style.display === '') {
+            box.style.display = 'block';
+            this.textContent = 'Hide Readme';
+         } else {
+            box.style.display = 'none';
+            this.textContent = 'Show Readme';
+         }
+      });
+      // ------- Reset button -----------
+      resetBtn.addEventListener('click', () => {
+			hitOffsets.length = 0; //clear the array
+         hitCount.fill(0);
+         totalHits = 0;
+         bg.clearRect(0, 0, W, H);   // clear canvas
+			fg.clearRect(0, 0, W, H);   // clear canvas
+         drawBackground();
+         ctxLens.clearRect(0, 0, lensSize, lensSize);  // clear magnifier
+         hitLimitReached = false;          // we can emit again
+         toggleBtn.disabled = false;        // re‑enable the Start/Stop button
+         toggleBtn.textContent = 'Start';
+         emitting = false;    // make sure we aren’t still emitting
+			controlsEnabled();   // Activate controls only after the screen has been cleared
+         // Get current date
+         let now = new Date();
+         let date = now.toLocaleDateString();
+         // Insert date and time into HTML
+         document.getElementById('date').innerHTML = date + ' - ';
+         info.textContent = ' ';
+      });
+      // -------- Start / Stop logic -------
+      toggleBtn.addEventListener('click', () => {
+         emitting = !emitting;
+         toggleBtn.textContent = emitting ? 'Stop' : 'Start';
+			controlsDisabled();
+      });
+		function controlsEnabled() {
+			chkClassic.disabled = false;
+			wallPosSlider.disabled = false;
+			thickSlider.disabled = false;
+			slitSizeSlider.disabled = false;
+			slitGapSlider.disabled = false;
+			particleSpeedSlider.disabled = false;
+			particleSlider.disabled = false;
+			screenPosSlider.disabled = false;
+			angleSlider.disabled = false;
+		}
+		function controlsDisabled() {
+			chkClassic.disabled = true;
+			resetBtn.disabled = emitting;    // controled directly from Start button 
+			wallPosSlider.disabled = true;
+			thickSlider.disabled = true;
+			slitSizeSlider.disabled = true;
+			slitGapSlider.disabled = true;
+			particleSpeedSlider.disabled = true;
+			particleSlider.disabled = true;
+			screenPosSlider.disabled = true;
+			angleSlider.disabled = true;
+		}
+      // ------ Geometry helpers ----------
+      // ----- Calculate slit positions ------
+      function getSlitRects() {
+         const total = 2 * slitWidth + slitGap;
+         const startTop = (H - total) / 2;
+         return [
+            { top: startTop, bottom: startTop + slitWidth },
+            { top: startTop + slitWidth + slitGap,
+             bottom: startTop + 2 * slitWidth + slitGap }
+         ];
+      }
+      // ------ Background drawing (static elements) --------
+      function drawBackground() {
+         bg.clearRect(0, 0, W, H);
+         bg.fillStyle = '#fff';
+         bg.fillRect(0, 0, W, H);
+         // gun
+         bg.strokeStyle = '#555';
+         bg.lineWidth = 4;
+         bg.beginPath();
+         bg.moveTo(gunX - 20, gunY);
+         bg.lineTo(gunX, gunY);
+         bg.stroke();
+         // wall
+         bg.fillStyle = '#c2b280';
+         bg.fillRect(wallX, 0, wallThickness, H);
+         // slits (clear rectangles)
+         const slits = getSlitRects();
+         bg.clearRect(wallX, slits[0].top, wallThickness, slitWidth);
+         bg.clearRect(wallX, slits[1].top, wallThickness, slitWidth);
+         bg.strokeStyle = '#000';
+         bg.lineWidth = 0.1;
+         bg.strokeRect(wallX, slits[0].top, wallThickness, slitWidth);
+         bg.strokeRect(wallX, slits[1].top, wallThickness, slitWidth);
+			// Classic style logic
+			if (chkClassic.checked) {
+				const CLASSIC_X_OFFSET = 80;  // position 3‑D screen with the 2‑D line - bottom of the 3D screen is not screenX  
+				csCanvas.style.left = screenX - CLASSIC_X_OFFSET + 'px';
+				csCanvas.style.top = screenTop + canvasTop + 'px';
+	         // hide screen line
+	         bg.strokeStyle = 'white';
+	         bg.lineWidth = 1;
+	         bg.beginPath();
+	         bg.moveTo(screenX, screenTop);
+	         bg.lineTo(screenX, screenBottom);
+	         bg.stroke();
+			} else {
+	         bg.strokeStyle = 'cyan';
+	         bg.lineWidth = 1;
+	         bg.beginPath();
+	         bg.moveTo(screenX, screenTop);
+	         bg.lineTo(screenX, screenBottom);
+	         bg.stroke();
+			}
+      }
+      // ------- Particle class -----------
+      class Particle {
+         constructor() {
+            this.r = particleSize;
+            this.x = gunX;
+            this.y = gunY;
+            // random launch angle of 45° or other chosen value
+            const deg = (Math.random() * spreadAngle) - spreadAngle / 2;
+            const rad = deg * Math.PI / 180;
+            const speed = particleSpeed;
+            this.vx = Math.cos(rad) * speed;
+            this.vy = Math.sin(rad) * speed;
+            this.alive = true;
+            this.color = 'blue'; // default (#0066ff)
+         }
+         update() {
+            if (!this.alive) return;
+            // move
+            this.x += this.vx;
+            this.y += this.vy;
+            // -------- Collision with wall -------
+            if (this.vx > 0 &&
+            this.x + this.r >= wallX &&
+            this.x - this.r <= wallX + wallThickness) {
+               const intersectY = this.y;
+               const slits = getSlitRects();
+               // helper: is Y inside a given slit?
+               const inside = (y, slit) => y >= slit.top && y <= slit.bottom;
+               const inUpper = inside(intersectY, slits[0]);
+               const inLower = inside(intersectY, slits[1]);
+               if (inUpper || inLower) {
+                  // inside a slit – possible bounce on top/bottom edge
+                  // Bounce constant: If bounce < "particleSize + particleSize/2" 
+                  // the bounce inside the slit "misbehave" (the particle sometimes
+                  // can be "absorbed" by the wall. If bounce > "particleSize + 
+                  // particleSize/2" the particle inside the slit can bounce before 
+                  // touching the slit wall. 
+                  const bounce = particleSize + particleSize / 2;
+                  const cur = inUpper ? slits[0] : slits[1];
+                  // remember which slit we passed through (colour cue)
+                  this.color = inUpper ? 'blue' : 'red';  // upper slit blue and lower slit turn red
+                  if (Math.abs(intersectY - cur.top) < bounce) {
+                     this.vy = Math.abs(this.vy);          // reflect downwards
+                  } else if (Math.abs(intersectY - cur.bottom) < bounce) {
+                     this.vy = -Math.abs(this.vy);         // reflect upwards
+                  }
+                  // otherwise just pass straight through
+               } else {
+                  // solid part of the wall → elastic bounce
+                  this.vx = -this.vx;
+               }
+            }
+         // ------- Reaching the screen -------------
+            if (this.x + this.r >= screenX) {
+                // the particle reached the screen on x axis
+               const iy = Math.max(0, Math.min(H - 1, Math.round(this.y)));
+               if (this.y >= screenTop && this.y <= screenBottom) {
+                  // the particle reached the screen on y axis and 
+                  // didn't escaped at the top or bottom of the screen
+                  hitCount[iy]++;       // record the hit in array
+                  totalHits++;          // record the hit for info
+		      //--- Classic Style - Compute a random offset for THIS hit ---------	
+				// Since the particles are emitted at random on horizontal plane
+				// they will have to have the same behaviour on vertical plane, so we have to
+				// create a "mock" random vertical distribution on the 3D screen
+						if (chkClassic.checked){
+   	               const randomImprint = Math.random() * slitHeight;  // stay inside the screen  
+		      // Store it in the per‑row array 
+		               if (!hitOffsets[iy]) hitOffsets[iy] = [];
+		               hitOffsets[iy].push(randomImprint);
+					   } 
+            //-------------------
+                  this.alive = false;   // stop moving
+            // format number of screen hits as "# ### ###" and display it
+				     if (chkClassic.checked && totalHits >= 10000) {
+					     haltEmission();   // in 3-D view the performance is lower 
+					     info.textContent = `${totalHits.toLocaleString('fr-FR')} particles hit the screen. ⏹ Emission stopped – The imprint exceeded 10 000 particles.`;
+					  } else {
+					     info.textContent = `${totalHits.toLocaleString('fr-FR')} particles hit the screen`
+				     }
+                 return;
+               }
+            }
+      // Kill the particles outside the canvas
+            if (this.x < gunX  || this.y > H || this.y < 1 ) this.alive = false;   // stop moving
+         // draw moving particle
+            this.draw();
+         }
+         draw() {
+            fg.fillStyle = this.color;      //  use the per‑particle colour
+            fg.beginPath();
+            fg.arc(this.x, this.y, this.r, 0, 2*Math.PI);
+            fg.fill(); 
+         }
+      }
+   // ------------- DRAW ACCUMULATED DOTS + LINES ---------------- 
+      function drawHits() {   
+      // CLASSIC STYLE: 3-D - draw a single round dot for every stored offset
+         if (chkClassic.checked) {
+            for (let y = 0; y < screenBottom; y++) {
+               const offsets = hitOffsets[y];   // array of random offsets for this row
+					if (!offsets || offsets.length === 0) continue;
+               // Draw every dot that belongs to this row
+ 					offsets.forEach(off => {
+                  // `off` is the random horizontal offset (relative to the screen line)
+					   const x = screenX + Math.round(off); 
+    				   drawRoundDot(x, y, particleSize, 'red');
+               });
+            }
+					// Classic‑style is done – exit early
+               return;
+         }
+      // NORMAL MODE: 2-D – draw a simple red line per row
+			for (let y = 0; y < screenBottom; y++) {
+				const idx = hitCount[y];
+            if (idx === 0) continue;
+            const offset = idx * particleSize;   // spacing = particleSize
+            bg.strokeStyle = 'red';
+            bg.lineWidth   = particleSize;
+            bg.beginPath();
+            bg.moveTo(screenX - 1 + offset, y);          // start right from the screen line
+            bg.lineTo(screenX + offset + particleSize, y);
+            bg.stroke();
+         }
+      }
+	   function drawRoundDot(x, y, particleSize, colour = 'red') {
+		   // In Classic‑Style mode the imprint should consist of round dots,
+		   // whereas in the regular mode it should be rendered as lines (accumulated dots)
+		
+	      // x, y  – coordinates of the *top‑left* corner where you used fillRect
+	      // size  – the same value you passed as particleSize (width & height)
+	      const radius = particleSize / 2;               // half the side length
+	      const cx = x + radius;                 // centre X
+	      const cy = y + radius;                 // centre Y
+	      bg.fillStyle = colour;
+	   bg.beginPath();
+	   bg.arc(cx, cy, radius, 0, Math.PI * 2); // full circle
+	   bg.fill();
+	}
+	function haltEmission() {
+	   /*
+      * Called whenever the imprint reaches the 10 000 hits limit (or any other
+      * condition that forces the emitter to stop).
+      * It puts the UI back into the “ready‑to‑start” state.
+      */
+      //  Stop generating new particles
+      emitting = false;
+      hitLimitReached = true;          // remember why we stopped
+     //   Update the button text
+     toggleBtn.textContent = 'Start';
+     //  Disable the button so the user cannot click it again
+     //     until they deliberately reset the simulation.
+	  toggleBtn.disabled = true;
+     resetBtn.disabled = false; 
+   }
+   // ----------- MAIN ANIMATION LOOP --------------- 
+   let particles = [];
+   function animate() {
+      fg.clearRect(0,0,W,H);               // Clear only the foreground (dynamic) canvas
+      drawHits();                          // Draw accumulated dots + lines
+      particles.forEach(p => p.update());  // Update and draw active particles
+      particles = particles.filter(p => p.alive);    // Remove dead particles
+      // If we are in the “emitting” state and no hitLimitReached, spawn a new particle each frame
+      if (emitting && !hitLimitReached) particles.push(new Particle());
+		   requestAnimationFrame(animate); 
+   }
+   // --------------- INITIALISE -------------------- 
+   drawBackground();
+   // --------- Draw the tiled watermark --------------
+   for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+         // Compute the centre point for this tile
+         const x = c * colSpacing + colSpacing / 2;
+         const y = r * lineSpacing + lineSpacing / 2;
+         wm.save();                     // isolate transformations per tile
+         wm.translate(x, y);            // move origin to tile centre
+         wm.rotate(angleWm);            // rotate the text
+         wm.textBaseline = 'bottom';    // split the text in 2 lines
+         wm.fillText('copyright © 2025 Ion Vlad', 0, 0);  // and draw the watermark
+         wm.textBaseline = 'top';
+         wm.fillText('contact@ionvlad.com', 0, 0);
+         wm.restore();                  // revert to default state
+      }
+   }
+   info.setAttribute('style', 'white-space: pre-line;');
+   info.textContent = '';
+   animate();
+   //--- Mouse handling – move the lens and redraw its contents ---- 
+   function onMouseMove(e) {
+			const rect = bgCanvas.getBoundingClientRect();
+	      const mouseX = e.clientX - rect.left;
+			const mouseY = e.clientY - rect.top + canvasTop; 
+      if (mouseX >= screenX - lensSize){
+         // if mouse close to screen line, then show magnifier
+         // and position the lens so its centre follows the pointer
+         lens.style.left = `${mouseX - lensSize/2}px`;
+         lens.style.top  = `${mouseY - lensSize/2}px`;
+         lens.style.display = 'block';
+      } else {
+         lens.style.display = 'none';
+      }
+      ctxLens.clearRect(0,0,lensSize,lensSize);   // Clear previous frame
+	   // Clip to a circle 
+	   ctxLens.save();
+	   ctxLens.beginPath();
+	   ctxLens.arc(lensSize/2, lensSize/2, lensSize/2, 0, Math.PI*2);
+	   ctxLens.clip();
+	   ctxLens.drawImage(
+	      bgCanvas,                           // source canvas
+	      mouseX - srcRadius,                 // sx
+         mouseY - srcRadius - canvasTop,     // sy
+	      srcRadius*2,                        // sWidth
+	      srcRadius*2,                        // sHeight
+	      0, 0,                               // dx, dy (top‑left of lens canvas)
+	      lensSize, lensSize               // dWidth, dHeight (scaled up)
+	   );
+   }
+   /* Hide the lens when the pointer leaves the canvas */
+   function onMouseLeave() {
+      lens.style.display = 'none';
+   }
+   /* Attach listeners */
+   fgCanvas.addEventListener('mousemove', onMouseMove);
+   fgCanvas.addEventListener('mouseleave', onMouseLeave);
+   </script>
+</body>
+</html>
