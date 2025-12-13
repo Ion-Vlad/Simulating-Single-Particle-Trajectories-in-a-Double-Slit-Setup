@@ -12,4 +12,5 @@ https://github.com/Ion-Vlad/Simulating-Single-Particle-Trajectories-in-a-Double-
 https://drive.proton.me/urls/XG5ZKT94A8#ijnqZsisCgjv
       
    Full license text: https://creativecommons.org/licenses/by/4.0/
- 
+
+ Vlad, I. (2025). *Simulation of single‑particle trajectories in a double‑slit geometry* (Version 1.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.17922056
