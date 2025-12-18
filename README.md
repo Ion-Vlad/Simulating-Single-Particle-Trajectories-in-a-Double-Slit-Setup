@@ -1,5 +1,5 @@
 # Simulating-Single-Particle-Trajectories-in-a-Double-Slit-Setup
-                 Read me for Double_Slit_Experiment_v1.1.html 
+                 Read me for Double_Slit_Simulation_v1.1.html 
 
 Copyright © 2025 Ion Vlad
 This program is released under the Creative Commons Attribution 4.0 International License (CC BY 4.0).
