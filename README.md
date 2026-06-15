@@ -12,7 +12,7 @@ When you modify or redistribute the code you must:
 Full license text: https://creativecommons.org/licenses/by/4.0/
 
 Vlad, I. (2025). *Simulation of single‑particle trajectories in a double‑slit geometry* (Version 1.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.17922056
-
+Version 1.5 https://zenodo.org/records/20683514
 
         Disclaimer:
 
