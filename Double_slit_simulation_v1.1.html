@@ -522,6 +522,7 @@
                   // can be "absorbed" by the wall. If bounce > "particleSize + 
                   // particleSize/2" the particle inside the slit can bounce before 
                   // touching the slit wall. 
+				  // CHANGE bounce VALUE IF YOU WANT SOME PARTICLES TO BE ABSORBED BY THE WALL
                   const bounce = particleSize + particleSize / 2;
                   const cur = inUpper ? slits[0] : slits[1];
                   // remember which slit we passed through (colour cue)
